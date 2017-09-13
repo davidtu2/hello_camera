@@ -1,0 +1,16 @@
+David Tu
+david.tu2@csu.fullerton.edu
+
+A program which draws a teapot with two light sources (Based on Professor Shafae's hello_glsl program).
+This program adds additional controls which evokes the following functions:
+    O button: moveCameraForward( );
+	L button: moveCameraBackward( );
+	K button: panCameraLeft( );
+	; button: panCameraRight( );
+The reset button has also been updated to evoke the following additional functions: 
+	initCenterPosition( );
+	initGazeDirection( );
+
+Defects:
+1. Whenever a user gets behind the teapot, the forward and backward functions are not inverted
+2. Whenever a user uses the functions to manipulate the teapot itself, the subsequent camera movement functions behave unexpectedly

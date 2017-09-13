@@ -1,6 +1,6 @@
 // 
-// Michael Shafae
-// mshafae at fullerton.edu
+// David Tu
+// david.tu2@csu.fullerton.edu
 // 
 // A toy program which renders a teapot and two light sources. 
 //
@@ -122,6 +122,7 @@ private:
   glm::vec3 centerPosition;
   glm::vec3 eyePosition;
   glm::vec3 upVector;
+  glm::vec3 gazeDirection;
 
   glm::mat4 modelViewMatrix;
   glm::mat4 projectionMatrix;
@@ -151,7 +152,7 @@ public:
   }
   
   void initEyePosition( ){
-    eyePosition = glm::vec3(0.0, 0.0, 5.0);
+    eyePosition = glm::vec3(0.0, 0.0, 10.0);
   }
 
   void initUpVector( ){
@@ -160,6 +161,10 @@ public:
 
   void initRotationDelta( ){
     rotationDelta = 0.05;
+  }
+
+  void initGazeDirection( ){
+	gazeDirection = centerPosition - eyePosition;
   }
    
   void initLights( ){
@@ -209,6 +214,31 @@ public:
     eyePosition = m * eyePosition;
   }
 
+  void moveCameraForward( ){
+	glm::mat4 translationMatrix(1);
+	translationMatrix = glm::translate(translationMatrix, glm::vec3(0, 0, -0.1));
+	eyePosition = glm::vec3(translationMatrix * glm::vec4(eyePosition, 1));
+	centerPosition = glm::vec3(translationMatrix * glm::vec4(centerPosition, 1));
+  }
+
+  void moveCameraBackward( ){
+	glm::mat4 translationMatrix(1);
+	translationMatrix = glm::translate(translationMatrix, glm::vec3(0, 0, 0.1));
+	eyePosition = glm::vec3(translationMatrix * glm::vec4(eyePosition, 1));
+	centerPosition = glm::vec3(translationMatrix * glm::vec4(centerPosition, 1));
+  }
+
+  void panCameraLeft( ){
+	glm::mat3 rotationMatrix = glm::rotate(rotationDelta, upVector);
+	gazeDirection = rotationMatrix * gazeDirection;
+	centerPosition = eyePosition + gazeDirection;
+  }
+
+  void panCameraRight( ){
+	glm::mat3 rotationMatrix = glm::rotate(-rotationDelta, upVector);
+	gazeDirection = rotationMatrix * gazeDirection;
+	centerPosition = eyePosition + gazeDirection;
+  }
 
   bool begin( ){
     msglError( );
@@ -216,6 +246,7 @@ public:
     initEyePosition( );
     initUpVector( );
     initRotationDelta( );
+	initGazeDirection( );
     initLights( );
     
     // Load shader program A
@@ -269,6 +300,8 @@ public:
     glUniform4fv(uLight1_position_A, 1, glm::value_ptr(_light1));
     glUniform4fv(uLight1_color_A, 1, glm::value_ptr(light1.color( )));
   }
+
+  
   
   bool render( ){
     glm::vec4 _light0;
@@ -303,11 +336,13 @@ public:
     }else if(isKeyPressed(GLFW_KEY_MINUS)){
 
     }else if(isKeyPressed('R')){
+	  initCenterPosition( );
       initEyePosition( );
       initUpVector( );
       initRotationDelta( );
-      initLights( );  
-      printf("Eye position, up vector and rotation delta reset.\n");
+	  initGazeDirection( );
+      initLights( ); 
+      printf("Eye position, up vector, center position, gaze direction and rotation delta reset.\n");
     }else if(isKeyPressed(GLFW_KEY_LEFT)){
       rotateCameraRight( );
     }else if(isKeyPressed(GLFW_KEY_RIGHT)){
@@ -340,7 +375,15 @@ public:
       light0.toggle( );
     }else if(isKeyPressed('2')){
       light1.toggle( );
-    }
+    }else if(isKeyPressed('O')){
+	  moveCameraForward( );
+	}else if(isKeyPressed('L')){
+	  moveCameraBackward( );
+	}else if(isKeyPressed('K')){
+	  panCameraLeft( );
+	}else if(isKeyPressed(';')){
+	  panCameraRight( );
+	}
     return !msglError( );
   }
     
