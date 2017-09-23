@@ -118,11 +118,11 @@ private:
 class HelloGLSLApp : public GLFWApp{
 private:
   float rotationDelta;
+  float speed;
 
   glm::vec3 centerPosition;
   glm::vec3 eyePosition;
   glm::vec3 upVector;
-  glm::vec3 gazeDirection;
 
   glm::mat4 modelViewMatrix;
   glm::mat4 projectionMatrix;
@@ -163,8 +163,8 @@ public:
     rotationDelta = 0.05;
   }
 
-  void initGazeDirection( ){
-	gazeDirection = centerPosition - eyePosition;
+  void initSpeed( ){
+	speed = 0.05;
   }
    
   void initLights( ){
@@ -215,29 +215,29 @@ public:
   }
 
   void moveCameraForward( ){
-	glm::mat4 translationMatrix(1);
-	translationMatrix = glm::translate(translationMatrix, glm::vec3(0, 0, -0.1));
-	eyePosition = glm::vec3(translationMatrix * glm::vec4(eyePosition, 1));
-	centerPosition = glm::vec3(translationMatrix * glm::vec4(centerPosition, 1));
+	glm::vec3 g = normalize(centerPosition - eyePosition);
+	eyePosition += g * speed;
+	centerPosition += g * speed;
   }
 
   void moveCameraBackward( ){
-	glm::mat4 translationMatrix(1);
-	translationMatrix = glm::translate(translationMatrix, glm::vec3(0, 0, 0.1));
-	eyePosition = glm::vec3(translationMatrix * glm::vec4(eyePosition, 1));
-	centerPosition = glm::vec3(translationMatrix * glm::vec4(centerPosition, 1));
+	glm::vec3 g = normalize(centerPosition - eyePosition);
+	eyePosition -= g * speed;
+	centerPosition -= g * speed;
   }
 
   void panCameraLeft( ){
+	glm::vec3 g = centerPosition - eyePosition;
 	glm::mat3 rotationMatrix = glm::rotate(rotationDelta, upVector);
-	gazeDirection = rotationMatrix * gazeDirection;
-	centerPosition = eyePosition + gazeDirection;
+	g = rotationMatrix * g;
+	centerPosition = eyePosition + g;
   }
 
   void panCameraRight( ){
+	glm::vec3 g = centerPosition - eyePosition;
 	glm::mat3 rotationMatrix = glm::rotate(-rotationDelta, upVector);
-	gazeDirection = rotationMatrix * gazeDirection;
-	centerPosition = eyePosition + gazeDirection;
+	g = rotationMatrix * g;
+	centerPosition = eyePosition + g;
   }
 
   bool begin( ){
@@ -246,7 +246,7 @@ public:
     initEyePosition( );
     initUpVector( );
     initRotationDelta( );
-	initGazeDirection( );
+	initSpeed( );
     initLights( );
     
     // Load shader program A
@@ -268,7 +268,7 @@ public:
       exit(1);
     }
     
-        // Set up uniform variables for shader program A
+    // Set up uniform variables for shader program A
     uModelViewMatrix_A = glGetUniformLocation(shaderProgram_A.id( ), "modelViewMatrix");
     uProjectionMatrix_A = glGetUniformLocation(shaderProgram_A.id( ), "projectionMatrix");
     uNormalMatrix_A = glGetUniformLocation(shaderProgram_A.id( ), "normalMatrix");
@@ -340,9 +340,9 @@ public:
       initEyePosition( );
       initUpVector( );
       initRotationDelta( );
-	  initGazeDirection( );
-      initLights( ); 
-      printf("Eye position, up vector, center position, gaze direction and rotation delta reset.\n");
+	  initSpeed( );
+      initLights( );
+      printf("Eye position, up vector, center position, and rotation delta reset.\n");
     }else if(isKeyPressed(GLFW_KEY_LEFT)){
       rotateCameraRight( );
     }else if(isKeyPressed(GLFW_KEY_RIGHT)){
